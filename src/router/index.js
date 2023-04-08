@@ -1,6 +1,8 @@
 // Composables
 import { createRouter, createWebHistory } from 'vue-router'
 import ListaMaterias from "@/components/ListaMaterias.vue";
+import InicioSesion from "@/components/InicioSesion.vue";
+import RegistroUsuario from "@/components/RegistroUsuario.vue";
 
 const routes = [
   {
@@ -19,6 +21,17 @@ const routes = [
         path: '/ListaMaterias',
         name: 'ListaMaterias',
         component: ListaMaterias
+      },
+
+      {
+        path: '/InicioSesion',
+        name: 'InicioSesion',
+        component: InicioSesion
+      },
+      {
+        path: '/RegistroUsuario',
+        name: 'RegistroUsuario',
+        component: RegistroUsuario
       },
     ],
   },
