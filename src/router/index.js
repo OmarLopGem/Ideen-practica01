@@ -4,7 +4,6 @@ import ListaMaterias from "@/components/ListaMaterias.vue";
 import InicioSesion from "@/components/InicioSesion.vue";
 import RegistroUsuario from "@/components/RegistroUsuario.vue";
 import InfoAlumno from "@/components/InfoAlumno.vue";
-import firebase from "firebase/compat"
 
 const routes = [
   {
@@ -23,9 +22,6 @@ const routes = [
         path: '/InfoAlumno',
         name: 'InfoAlumno',
         component: InfoAlumno,
-        meta: {
-          requiredUser: true
-        }
       },
       {
         path: '/ListaMaterias',
@@ -52,19 +48,6 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
-  if (to.matched.some(ruta => ruta.meta.requiredUser)) {
-    const user = firebase.auth().currentUser;
-    if (user) {
-      next();
-    } else {
-      next({
-        name:'InicioSesion'
-      })
-    }
-  } else {
-    next();
-  }
-})
+
 
 export default router

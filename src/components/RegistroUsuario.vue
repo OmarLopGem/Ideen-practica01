@@ -51,6 +51,14 @@
         ]"
       ></v-text-field>
       <v-text-field
+        v-model="carrera"
+        label="Carrera"
+        variant="outlined"
+        :rules="[
+          (v) => !!v || 'Se requiere una carrera',
+        ]"
+      ></v-text-field>
+      <v-text-field
         v-model="password"
         label="Contraseña"
         :type="'password'"
@@ -105,6 +113,7 @@ export default {
     matricula: null,
     correoInstitucional: null,
     correoPersonal: null,
+    carrera: null,
     password: null,
     confirmPassword: null,
     terms: false
@@ -114,14 +123,17 @@ export default {
     async onSubmit () {
       if (!this.val) return
       if (this.val) {
-        await firebase.auth().createUserWithEmailAndPassword(this.correoInstitucional, this.password).then((result) => {
-          this.$router.push({name: 'InfoAlumno'})
-          firebase.firestore().collection('users').doc(result.user.uid).set({
-            'nombre': this.nombre,
-            'matricula': this.matricula,
-            'correoPersonal': this.correoPersonal
-          });
+        const result = await firebase.auth().createUserWithEmailAndPassword(this.correoInstitucional, this.password)
+        await firebase.firestore().collection('users').doc(result.user.uid).set({
+
+          'nombre': this.nombre,
+          'matricula': this.matricula,
+          'correoPersonal': this.correoPersonal,
+          'correoInstitucional': this.correoInstitucional,
+          'carrera': this.carrera
+
         });
+        this.$router.push({name: 'InfoAlumno'})
       }
     },
   },

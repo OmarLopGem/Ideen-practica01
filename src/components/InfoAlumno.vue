@@ -12,7 +12,7 @@
     </v-row>
     <v-row class="d-flex align-center justify-center my-8">
       <v-col>
-        <v-img v-model="storage" class="mx-auto rounded-circle" width="225px"></v-img>
+        <v-img :src="userImage" class="mx-auto rounded-circle" width="225px"></v-img>
       </v-col>
     </v-row>
     <v-row style="max-width: 100%; margin: 0px" class="my-8 hidden-sm-and-down">
@@ -20,13 +20,13 @@
         cols="9"
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Nombre completo</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ nombre }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.nombre }}</p>
       </v-col>
 
       <v-col
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Matricula</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ matricula }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.matricula }}</p>
       </v-col>
     </v-row>
 
@@ -34,7 +34,7 @@
       <v-col
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Nombre completo</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ nombre }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.nombre }}</p>
       </v-col>
     </v-row>
 
@@ -42,7 +42,7 @@
       <v-col
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Matricula</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ matricula }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.matricula }}</p>
       </v-col>
     </v-row>
 
@@ -51,12 +51,12 @@
         cols="9"
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Correo institucional</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ correoInstitucional }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.correoInstitucional }}</p>
       </v-col>
       <v-col
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Carrera</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ carrera }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.carrera }}</p>
       </v-col>
     </v-row>
 
@@ -64,7 +64,7 @@
       <v-col
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Correo institucional</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ correoInstitucional }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.correoInstitucional }}</p>
       </v-col>
     </v-row>
 
@@ -72,7 +72,7 @@
       <v-col
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Carrera</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ carrera }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.carrera }}</p>
       </v-col>
     </v-row>
 
@@ -81,7 +81,7 @@
         cols="9"
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Correo personal</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ correoPersonal }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.correoPersonal }}</p>
       </v-col>
     </v-row>
 
@@ -89,39 +89,38 @@
       <v-col
       >
         <p class="text-h5 font-weight-bold" style="color: #384FFE">Correo personal</p>
-        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ correoPersonal }}</p>
+        <p class="text-h5 font-weight-bold font" style="color: #808B96">{{ data.correoPersonal }}</p>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
-<script>
-import { initializeApp } from "firebase/app";
-import { getStorage } from "firebase/storage";
-
-  const firebaseConfig = {
-    // ...
-    storageBucket: 'gs://practica-01-ideen-ac2e0.appspot.com/Sample_User_Icon.png'
-  };
-
-  const app = initializeApp(firebaseConfig);
-
-  const storage = getStorage(app);
-
-export default {
-  data() {
-    return {
-      nombre: "Jorge Omar Lopez Gemigniani",
-      matricula: "A01769675",
-      carrera: "ITC",
-      correoInstitucional: "A01769675@tec.mx",
-      correoPersonal: "jolopgem@gmail.com",
-    }
-  }
-
-}
-</script>
-
 <script setup>
-  //
+import { onMounted, ref } from 'vue'
+import { getAuth } from 'firebase/auth'
+import { getFirestore, getDoc, doc } from 'firebase/firestore'
+import { getStorage, ref as storageRef, getDownloadURL } from 'firebase/storage'
+
+const data = ref({
+  nombre: '',
+  matricula: '',
+  correoInstitucional: '',
+  correoPersonal: '',
+  carrera: ''
+})
+
+const userImage = ref('')
+
+onMounted(async () => {
+  const auth = getAuth()
+  const user = auth.currentUser
+  const db = getFirestore()
+  const docRef = doc(db, 'users', user.uid)
+  const docSnap = await getDoc(docRef)
+
+  const storage = getStorage()
+  userImage.value = await getDownloadURL(storageRef(storage, 'Sample_User_Icon.png'))
+  data.value = docSnap.data()
+  console.log(data.value)
+})
 </script>
