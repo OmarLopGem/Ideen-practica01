@@ -12,7 +12,7 @@
     </v-row>
     <v-row class="d-flex align-center justify-center my-8">
       <v-col>
-        <v-img src="/src/assets/juan-escutia2.jpeg" class="mx-auto rounded-circle" width="225px"></v-img>
+        <v-img v-model="storage" class="mx-auto rounded-circle" width="225px"></v-img>
       </v-col>
     </v-row>
     <v-row style="max-width: 100%; margin: 0px" class="my-8 hidden-sm-and-down">
@@ -96,6 +96,18 @@
 </template>
 
 <script>
+import { initializeApp } from "firebase/app";
+import { getStorage } from "firebase/storage";
+
+  const firebaseConfig = {
+    // ...
+    storageBucket: 'gs://practica-01-ideen-ac2e0.appspot.com/Sample_User_Icon.png'
+  };
+
+  const app = initializeApp(firebaseConfig);
+
+  const storage = getStorage(app);
+
 export default {
   data() {
     return {
@@ -106,6 +118,7 @@ export default {
       correoPersonal: "jolopgem@gmail.com",
     }
   }
+
 }
 </script>
 
