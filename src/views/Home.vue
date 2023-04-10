@@ -1,7 +1,6 @@
 <template>
   <v-app>
-    <InformacionAlumno v-if="condition === true"/>
-    <InicioSesion v-else/>
+    <InicioSesion />
     <default-view />
   </v-app>
 </template>
@@ -18,6 +17,5 @@ export default {
 </script>
 
 <script setup>
-import InformacionAlumno from "@/components/InfoAlumno.vue";
 import InicioSesion from "@/components/InicioSesion.vue";
 </script>

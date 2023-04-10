@@ -10,107 +10,122 @@
         </h4>
       </v-col>
     </v-row>
-    <form @submit.prevent="submit">
+    <v-form v-model="val" @submit.prevent="onSubmit">
       <v-text-field
-        v-model="name.value.value"
-        :error-messages="name.errorMessage.value"
+        v-model="nombre"
         label="Nombre Completo"
         variant="outlined"
+        :rules="[
+          (v) => !!v || 'Se requiere un nombre',
+        ]"
       ></v-text-field>
       <v-text-field
-        v-model="phone.value.value"
-        :counter="7"
-        :error-messages="phone.errorMessage.value"
+        v-model="matricula"
         label="Matrícula"
         variant="outlined"
+        :rules="[
+          (v) => !!v || 'Se requiere una matrícula',
+          (v) => v.length === 9 || 'Se requieren 9 caracteres para la matrícula'
+        ]"
       ></v-text-field>
       <v-text-field
-        v-model="email.value.value"
-        :error-messages="email.errorMessage.value"
+        v-model="correoInstitucional"
         label="Correo Institucional"
         variant="outlined"
+        :rules="[
+          (v) => !!v || 'Se requiere un correo',
+          (v) =>
+            !v ||
+            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Se debe ingresar correo válido'
+        ]"
       ></v-text-field>
       <v-text-field
-        v-model="email.value.value"
-        :error-messages="email.errorMessage.value"
+        v-model="correoPersonal"
         label="Correo Personal"
         variant="outlined"
+        :rules="[
+          (v) => !!v || 'Se requiere un correo',
+          (v) =>
+            !v ||
+            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Se debe ingresar correo válido'
+        ]"
       ></v-text-field>
       <v-text-field
-        v-model="password.value.value"
-        :error-messages="password.errorMessage.value"
+        v-model="password"
         label="Contraseña"
+        :type="'password'"
         variant="outlined"
-        :type="false ? 'text' : 'password'"
+        :rules="[
+          (v) => !!v || 'Se requiere una contraseña',
+          (v) => v.length >= 6 || 'Se debe ingresar una contrseña de al menos 6 caracteres'
+        ]"
       ></v-text-field>
       <v-text-field
-        v-model="password.value.value"
-        :error-messages="password.errorMessage.value"
+        v-model="confirmPassword"
         label="Confirmar Contraseña"
+        :type="'password'"
         variant="outlined"
-        :type="false ? 'text' : 'password'"
+        :rules="[
+          (v) => !!v || 'Se requiere una contraseña',
+          (v) => v.length >= 6 || 'Se debe ingresar una contrseña para confirmar',
+          (v) => v === password || 'Las contraseñas deben coincidir'
+        ]"
       ></v-text-field>
       <v-checkbox
-        v-model="checkbox.value.value"
-        :error-messages="checkbox.errorMessage.value"
+        v-model="terms"
         value="1"
         label="Acepto términos y condiciones"
         type="checkbox"
+        :rules="[
+          (v) => !!v || 'Debe aceptar los terminos y condiciones'
+        ]"
         class="d-flex justify-center align-center mb-5"
       ></v-checkbox>
       <v-btn block
              color="#384FFE"
              class="text-none"
+             :disabled="!val"
+             :disables="!terms"
+             type="submit"
       ><h3 style="color: white">Registrarse</h3></v-btn>
-    </form>
+    </v-form>
   </v-container>
 </template>
 
 <script>
-import { useField, useForm } from 'vee-validate'
+import firebase from "firebase/compat";
 export default {
-  setup () {
-    const { handleSubmit } = useForm({
-      validationSchema: {
-        name (value) {
-          if (value?.length >= 2) return true
-
-          return 'El nombre necesita al menos dos caracteres'
-        },
-        phone (value) {
-          if (value?.length >= 9) return true
-
-          return 'La matrícula necesita al menos 9 caracteres'
-        },
-        email (value) {
-          if (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(value)) return true
-
-          return 'Debe ingresar un correo válido'
-        },
-        password (value) {
-          if (value?.length >= 6) return true
-
-          return 'La contraseña debe tener al menos 6 caracteres'
-        },
-        checkbox (value) {
-          if (value === '1') return true
-
-          return 'Debe aceptar los términos y condiciones'
-        },
-      }
-    })
-    const name = useField('name')
-    const phone = useField('phone')
-    const email = useField('email')
-    const password = useField('password')
-    const checkbox = useField('checkbox')
-
-    const submit = handleSubmit(values => {
-      alert(JSON.stringify(values, null, 2))
-    })
-    return { name, phone, email, password, checkbox, submit }
-
+  props: {
+    logg: Boolean
   },
+  name: "infoUser",
+  data: () => ({
+    val: false,
+    nombre: null,
+    matricula: null,
+    correoInstitucional: null,
+    correoPersonal: null,
+    password: null,
+    confirmPassword: null,
+    terms: false
+  }),
+
+  methods: {
+    async onSubmit () {
+      if (!this.val) return
+      if (this.val) {
+        await firebase.auth().createUserWithEmailAndPassword(this.correoInstitucional, this.password).then((result) => {
+          this.$router.push({name: 'InfoAlumno'})
+          firebase.firestore().collection('users').doc(result.user.uid).set({
+            'nombre': this.nombre,
+            'matricula': this.matricula,
+            'correoPersonal': this.correoPersonal
+          });
+        });
+      }
+    },
+  },
+
 }
 </script>
 

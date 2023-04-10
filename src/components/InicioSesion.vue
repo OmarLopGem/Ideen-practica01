@@ -10,73 +10,93 @@
         </h4>
       </v-col>
     </v-row>
-    <form @submit.prevent="submit">
+    <v-form v-model="val" @submit.prevent="onSubmit">
       <v-text-field
-        v-model="email.value.value"
-        :error-messages="email.errorMessage.value"
+        v-model="correoInstitucional"
         label="Correo Institucional"
         variant="outlined"
+        :rules="[
+          (v) => !!v || 'Se requiere un correo',
+          (v) =>
+            !v ||
+            /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(v) || 'Se debe ingresar correo válido'
+        ]"
       ></v-text-field>
       <v-text-field
-        v-model="password.value.value"
-        :error-messages="password.errorMessage.value"
+        v-model="password"
         label="Contraseña"
+        :type="'password'"
         variant="outlined"
-        :type="false ? 'text' : 'password'"
-        class="mb-10"
+        :rules="[
+          (v) => !!v || 'Se requiere una contraseña',
+          (v) => v.length >= 6 || 'Se debe ingresar una contrseña de al menos 6 caracteres'
+        ]"
       ></v-text-field>
       <v-btn block
              color="#384FFE"
              class="text-none"
+             :disabled="!val"
+             type="submit"
       ><h3 style="color: white">Iniciar sesión</h3></v-btn>
-    </form>
+    </v-form>
+    <v-dialog
+      v-model="errorInfo"
+    >
+      <v-card class="py-5 px-4 rounded-lg mx-auto" id="dialogInfoMaterias" width="100%" max-width="400px">
+        <h2 style="color: #384FFE" class="text-center mb-4">{{ errorInfo.title }}</h2>
+        <h3 class="d-flex justify-center align-center">{{ errorInfo.title }}</h3>
+        <h3 class="d-flex justify-center align-center">{{ errorInfo.msg }}</h3>
+        <div class="pt-4 text-center">
+          <v-card-actions>
+            <v-btn
+              block
+              variant="text"
+              class="text-none text-caption text-center"
+              @click="errorInfo = false"
+            >
+              <h3 style="color: #384FFE">CERRAR</h3>
+            </v-btn>
+          </v-card-actions>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script>
-import { useField, useForm } from 'vee-validate'
-export default {
-  setup () {
-    const { handleSubmit } = useForm({
-      validationSchema: {
-        name (value) {
-          if (value?.length >= 2) return true
+  import firebase from "firebase/compat";
+  export default {
+    data: () => ({
+      val: false,
+      correoInstitucional: null,
+      password: null,
+      errorStatus: false,
+      errorInfo: false
+    }),
 
-          return 'El nombre necesita al menos dos caracteres'
-        },
-        phone (value) {
-          if (value?.length >= 9) return true
+    methods: {
+      async onSubmit () {
+        if (!this.val) return
+        try {
+          await firebase.auth().signInWithEmailAndPassword(this.correoInstitucional, this.password).then(() => {
+            this.$router.push({name: 'InfoAlumno'})
+          });
+          this.errorStatus = false
+        } catch (errorType) {
+          this.errorStatus = true
+          const msg = errorType.code === 'auth/wrong-password'
+              ? 'La contraseña no coincide con el correo ingresado'
+              :'El correo no esta registrado'
+          this.errorInfo = {
+            title: 'Error al iniciar sesión',
+            msg,
+            type: 'error'
+          }
+        }
+      },
+    },
 
-          return 'La matrícula necesita al menos 9 caracteres'
-        },
-        email (value) {
-          if (/^[a-z.-]+@[a-z.-]+\.[a-z]+$/i.test(value)) return true
-
-          return 'Debe ingresar un correo válido'
-        },
-        password (value) {
-          if (value?.length >= 6) return true
-
-          return 'La contraseña debe tener al menos 6 caracteres'
-        },
-        checkbox (value) {
-          if (value === '1') return true
-
-          return 'Debe aceptar los términos y condiciones'
-        },
-      }
-    })
-
-    const email = useField('email')
-    const password = useField('password')
-
-    const submit = handleSubmit(values => {
-      alert(JSON.stringify(values, null, 2))
-    })
-    return { email, password, submit }
-
-  },
-}
+  }
 </script>
 
 <style scoped>
